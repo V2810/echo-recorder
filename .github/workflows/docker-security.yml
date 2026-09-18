@@ -1,0 +1,63 @@
+# ============================================================
+# Experiment 6 — Docker Image Security Scanning
+# Builds the Docker image and scans it with Trivy
+# ============================================================
+
+name: Docker Security Scan (Trivy)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  docker-security-scan:
+    name: Build & Scan Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Step 1: Checkout repository ───────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Step 2: Set up Docker Buildx ──────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ── Step 3: Build Docker image ────────────────────────
+      - name: Build Docker image
+        run: |
+          echo "▸ Building Docker image: echo-recorder:${{ github.sha }}"
+          docker build -t echo-recorder:${{ github.sha }} -t echo-recorder:latest .
+          echo "✔ Docker image built successfully"
+
+      # ── Step 4: Verify image was created ──────────────────
+      - name: Verify Docker image
+        run: |
+          echo "▸ Listing Docker images:"
+          docker images echo-recorder
+          echo ""
+          echo "▸ Image details:"
+          docker inspect echo-recorder:latest --format='Image: {{.Id}} | Size: {{.Size}} bytes'
+
+      # ── Step 5: Trivy vulnerability scan ──────────────────
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'echo-recorder:latest'
+          scan-type: 'image'
+          format: 'table'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
+          vuln-type: 'os,library'
+
+      # ── Step 6: Security scan passed ──────────────────────
+      - name: Security scan PASSED
+        if: success()
+        run: |
+          echo "╔══════════════════════════════════════════════╗"
+          echo "║  ✅  SECURITY SCAN PASSED                    ║"
+          echo "║  No HIGH or CRITICAL vulnerabilities found   ║"
+          echo "║  Image: echo-recorder:latest                 ║"
+          echo "╚══════════════════════════════════════════════╝"

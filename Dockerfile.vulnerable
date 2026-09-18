@@ -1,0 +1,47 @@
+# ============================================================
+# Experiment 6 — VULNERABLE Dockerfile (FOR LAB DEMO ONLY)
+# Uses an intentionally old, vulnerable base image (nginx:1.12)
+# to demonstrate Trivy detecting HIGH/CRITICAL CVEs.
+#
+# DO NOT use this in production!
+# After the FAIL demonstration, revert to the secure Dockerfile.
+# ============================================================
+
+# ----------------------------------------------------------
+# Stage 1: Build the Flutter web application
+# ----------------------------------------------------------
+FROM ghcr.io/cirruslabs/flutter:stable AS build
+
+WORKDIR /app
+
+# Copy dependency manifests first for Docker layer caching
+COPY pubspec.yaml pubspec.lock ./
+
+# Pre-download dependencies
+RUN flutter pub get
+
+# Copy the rest of the application source
+COPY lib/ lib/
+COPY web/ web/
+COPY assets/ assets/
+
+# Build the Flutter web app (release mode)
+RUN flutter build web --release
+
+# ----------------------------------------------------------
+# Stage 2: INTENTIONALLY VULNERABLE — nginx:1.12 (Debian Stretch, 2017)
+# This image contains many known HIGH and CRITICAL vulnerabilities.
+# ----------------------------------------------------------
+FROM nginx:1.12
+
+# Remove default Nginx static content
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy compiled Flutter web app from build stage
+COPY --from=build /app/build/web /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx in foreground
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,58 @@
+# Version control
+.git/
+.gitignore
+
+# Flutter build artifacts
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# Native platform directories (not needed for web build)
+android/
+ios/
+macos/
+windows/
+linux/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Miscellaneous
+*.log
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# Test and documentation
+test/
+**/doc/api/
+coverage/
+
+# Symbolication / obfuscation
+app.*.symbols
+app.*.map.json
+
+# Docker
+Dockerfile
+Dockerfile.*
+.dockerignore
+
+# CI/CD
+.github/
+
+# Metadata
+.metadata
+README.md
+analysis_options.yaml
